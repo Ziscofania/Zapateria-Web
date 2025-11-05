@@ -1,20 +1,42 @@
-import { promises as fs } from "fs";
+import fs from "fs";
 import path from "path";
 
-const DATA_PATH = path.join(process.cwd(), "src", "data", "data.json");
+const DATA_PATH = path.resolve(__dirname, "../data/users.json");
 
-export async function readData(): Promise<{ products: any[]; cart: any[] }> {
-try {
-    const raw = await fs.readFile(DATA_PATH, "utf-8");
-    return JSON.parse(raw);
-} catch (err) {
-    // Si no existe, inicializa
-    const initial = { products: [], cart: [] };
-    await writeData(initial);
-    return initial;
-}
+export type User = {
+  id: string;
+  email: string;
+  passwordHash: string;
+  twoFactorSecret?: string; // base32
+  twoFactorEnabled?: boolean;
+};
+
+function ensureFile() {
+  if (!fs.existsSync(DATA_PATH)) {
+    fs.mkdirSync(path.dirname(DATA_PATH), { recursive: true });
+    fs.writeFileSync(DATA_PATH, JSON.stringify({ users: [] }, null, 2));
+  }
 }
 
-export async function writeData(data: { products: any[]; cart: any[] }) {
-await fs.writeFile(DATA_PATH, JSON.stringify(data, null, 2), "utf-8");
+export function readUsers(): User[] {
+  ensureFile();
+  const raw = fs.readFileSync(DATA_PATH, "utf8");
+  const data = JSON.parse(raw);
+  return data.users as User[];
+}
+
+export function writeUsers(users: User[]) {
+  fs.writeFileSync(DATA_PATH, JSON.stringify({ users }, null, 2));
+}
+
+export function findUserByEmail(email: string): User | undefined {
+  return readUsers().find((u) => u.email.toLowerCase() === email.toLowerCase());
+}
+
+export function saveOrUpdateUser(user: User) {
+  const users = readUsers();
+  const idx = users.findIndex((u) => u.id === user.id);
+  if (idx >= 0) users[idx] = user;
+  else users.push(user);
+  writeUsers(users);
 }
