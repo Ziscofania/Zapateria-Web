@@ -1,47 +1,84 @@
-const fmt = (n) => n.toLocaleString('es-CO', { style: 'currency', currency: 'COP' });
+const productList = document.getElementById("product-list");
+const searchInput = document.getElementById("search");
+const cartCount = document.getElementById("cart-count");
+const toastEl = document.getElementById("toast");
+const toast = new bootstrap.Toast(toastEl);
 
+let products = [];
+
+// --- Cargar productos desde la API ---
 async function loadProducts() {
-  const res = await fetch('/api/products');
-  const products = await res.json();
-  const list = document.getElementById('product-list');
-  list.innerHTML = products.map(p => `
-    <div class="col-12 col-sm-6 col-lg-4">
+  try {
+    const res = await fetch("/api/products");
+    if (!res.ok) throw new Error("Error al obtener productos");
+    products = await res.json();
+    renderProducts(products);
+  } catch (err) {
+    console.error(err);
+    productList.innerHTML = `<p class="text-danger text-center">Error al cargar productos.</p>`;
+  }
+}
+
+// --- Renderizar productos ---
+function renderProducts(list) {
+  productList.innerHTML = list.map(p => `
+    <div class="col-sm-6 col-md-4 col-lg-3">
       <div class="card h-100 shadow-sm">
         <img src="${p.image}" class="card-img-top" alt="${p.name}">
         <div class="card-body d-flex flex-column">
           <h5 class="card-title">${p.name}</h5>
-          <p class="text-muted mb-2">${p.description}</p>
-          <p class="fw-bold">${fmt(p.price)}</p>
-          <div class="mt-auto d-flex gap-2">
-            <button class="btn btn-primary" data-id="${p.id}" data-qty="1">Agregar</button>
-            <a href="/cart.html" class="btn btn-outline-secondary">Ver carrito</a>
-          </div>
+          <p class="text-muted small">${p.description}</p>
+          <p class="fw-bold mb-3">$${p.price.toLocaleString()}</p>
+          <button class="btn btn-primary mt-auto" data-id="${p.id}">Agregar al carrito</button>
         </div>
       </div>
     </div>
-  `).join('');
+  `).join("");
 
-  list.querySelectorAll('button[data-id]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const productId = Number(btn.dataset.id);
-      const qty = Number(btn.dataset.qty);
-      await fetch('/api/cart/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId, qty })
-      });
-      updateCartCount();
-    });
-  });
+  document.querySelectorAll("button[data-id]").forEach(btn =>
+    btn.addEventListener("click", () => addToCart(Number(btn.dataset.id)))
+  );
+}
 
+// --- Filtro de búsqueda ---
+searchInput.addEventListener("input", e => {
+  const query = e.target.value.toLowerCase();
+  const filtered = products.filter(p =>
+    p.name.toLowerCase().includes(query) ||
+    p.price.toString().includes(query)
+  );
+  renderProducts(filtered);
+});
+
+// --- Carrito ---
+function getCart() {
+  return JSON.parse(localStorage.getItem("cart") || "[]");
+}
+
+function saveCart(cart) {
+  localStorage.setItem("cart", JSON.stringify(cart));
+}
+
+function updateCartCount() {
+  const cart = getCart();
+  cartCount.textContent = cart.reduce((acc, i) => acc + i.quantity, 0);
+}
+
+function addToCart(id) {
+  const product = products.find(p => p.id === id);
+  if (!product) return;
+
+  const cart = getCart();
+  const existing = cart.find(i => i.id === id);
+  if (existing) existing.quantity++;
+  else cart.push({ ...product, quantity: 1 });
+
+  saveCart(cart);
   updateCartCount();
+  toast.show();
 }
 
-async function updateCartCount() {
-  const res = await fetch('/api/cart');
-  const cart = await res.json();
-  const count = cart.reduce((acc, i) => acc + i.qty, 0);
-  document.getElementById('cart-count').textContent = String(count);
-}
-
+// --- Inicialización ---
+updateCartCount();
 loadProducts();
+  
