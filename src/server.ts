@@ -1,28 +1,21 @@
-import express from "express";
-import cors from "cors";
-import cookieSession from "cookie-session";
-import productsRouter from "./routes/products";
-import cartRouter from "./routes/cart";
+import express from 'express';
+import cartRoutes from './routes/cart';  // Asegúrate de que la ruta esté correcta
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-app.use(express.json());
-app.use(cookieSession({
-  name: "session",
-  secret: "zapateria-secret",
-  httpOnly: true,
-  maxAge: 24 * 60 * 60 * 1000
-}));
+// Middleware para manejar JSON
+app.use(express.json());  // Esto permite que Express maneje los datos en formato JSON
 
-// Static files (frontend)
-app.use(express.static("public"));
+// Usar las rutas de cart.ts
+app.use('/api/cart', cartRoutes);  // Esto registrará la ruta /api/cart
 
-// API
-app.use("/api/products", productsRouter);
-app.use("/api/cart", cartRouter);
+// Ruta raíz (opcional)
+app.get('/', (req, res) => {
+    res.send('¡Bienvenido a la API de la zapatería!');
+});
 
-app.listen(PORT, () => {
-  console.log(`Servidor escuchando en http://localhost:${PORT}`);
+// Inicia el servidor
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Servidor escuchando en http://localhost:${port}`);
 });
