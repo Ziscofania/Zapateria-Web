@@ -1,0 +1,29 @@
+{
+"products": [
+    {
+    "id": "p1",
+    "name": "Zapatilla Urbana Azul",
+    "price": 120000,
+    "description": "Zapatilla cómoda para uso diario. Suela resistente.",
+    "stock": 10,
+    "image": "/img/producto1.jpg"
+    },
+    {
+    "id": "p2",
+    "name": "Tenis Deportivo Rojo",
+    "price": 150000,
+    "description": "Diseño deportivo, ideal para entrenar.",
+    "stock": 8,
+    "image": "/img/producto2.jpg"
+    },
+    {
+    "id": "p3",
+    "name": "Maleta CR4 125 - Negra",
+    "price": 600000,
+    "description": "Maleta resistente, perfecta para viajes.",
+    "stock": 5,
+    "image": "/img/producto3.jpg"
+    }
+],
+"cart": []
+}
