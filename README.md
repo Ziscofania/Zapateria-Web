@@ -106,3 +106,5 @@ El servidor estará disponible en:
 http://localhost:3000
 
 # pruebas 
+![Vista previa del login](./public/assets/pruebas.jpeg)
+
