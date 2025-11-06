@@ -1,16 +1,31 @@
-import jwt from "jsonwebtoken";
+import jwt, { Secret, SignOptions } from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "replace_this_with_strong_secret";
+const JWT_SECRET: Secret = process.env.JWT_SECRET || "super_secret_key";
 
-export function signAccessToken(payload: object, expiresIn = "1h") {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn });
+// Generar un token JWT de sesión normal
+export function signAccessToken(
+  payload: object,
+  expiresIn: string | number = "1h"
+): string {
+  const options: SignOptions = { expiresIn: expiresIn as SignOptions["expiresIn"] };
+  return jwt.sign(payload, JWT_SECRET, options);
 }
 
-export function signTempToken(payload: object, expiresIn = "5m") {
-  // token corto para paso 2FA
-  return jwt.sign({ ...payload, purpose: "2fa" }, JWT_SECRET, { expiresIn });
+// Generar un token temporal para autenticación en dos pasos (2FA)
+export function signTempToken(
+  payload: object,
+  expiresIn: string | number = "5m"
+): string {
+  const options: SignOptions = { expiresIn: expiresIn as SignOptions["expiresIn"] };
+  // Agregamos el campo "purpose" para identificar que es un token temporal
+  return jwt.sign({ ...payload, purpose: "2fa" }, JWT_SECRET, options);
 }
 
-export function verifyToken(token: string) {
-  return jwt.verify(token, JWT_SECRET) as any;
+// Verificar y decodificar un token JWT
+export function verifyToken<T = any>(token: string): T | null {
+  try {
+    return jwt.verify(token, JWT_SECRET) as T;
+  } catch {
+    return null;
+  }
 }
