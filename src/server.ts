@@ -1,8 +1,6 @@
 import express from "express";
 import path from "path";
 import cors from "cors";
-
-
 // Importar rutas
 import cartRoutes from "./routes/cart"; 
 import productRoutes from "./routes/products"; 
@@ -31,7 +29,7 @@ app.use("/api/auth", authRoutes); // login / register
 // RUTAS PROTEGIDAS (requieren JWT)
 // ===============================
 app.use("/api/cart", authMiddleware, cartRoutes);
-app.use("/api/products", authMiddleware, productRoutes);
+app.use("/api/products", productRoutes);
 
 // ===============================
 // RUTA RAÍZ
